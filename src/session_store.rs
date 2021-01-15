@@ -2,59 +2,44 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
-#[derive(Copy, Clone)]
-pub struct Session {}
-
-pub struct SessionStore {
-    session_cache: HashMap<String, Session>,
+#[derive(Clone, Debug)]
+pub struct Session {
+    token: String,
+    refresh_token: Option<String>,
+    email: String
 }
 
-pub type SharedSessionStore = Arc<Mutex<SessionStore>>;
+#[derive(Clone)]
+pub struct SessionStore {
+    session_cache: Arc<Mutex<HashMap<String, Session>>>,
+}
 
 impl Session {
-    pub fn new() -> Session {
+    pub fn new(token: String, refresh_token: Option<String>, email: String) -> Session {
         Session {
+            token: token,
+            refresh_token: refresh_token,
+            email: email,
         }
     }
 }
 
 impl SessionStore {
-    pub fn new() -> SharedSessionStore {
-        println!("SessionStore");
-        Arc::new(Mutex::new(SessionStore {
-            session_cache: HashMap::new(),
-        }))
-    }
-}
-
-pub fn new_session_store() -> SharedSessionStore {
-    SessionStore::new()
-}
-
-pub struct SafeSessionStore {
-    acc: SharedSessionStore,
-}
-
-impl SafeSessionStore {
-    pub fn new(a: SharedSessionStore) -> SafeSessionStore {
-        SafeSessionStore { acc: a }
+    pub fn new() -> SessionStore {
+        SessionStore {
+            session_cache: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 
     pub fn get_session(&self, session_id: &str) -> Option<Session> {
-        self.acc
-            .lock()
-            .unwrap()
-            .session_cache
-            .get(session_id)
-            .copied()
+        self.session_cache.lock().unwrap().get(session_id).cloned()
     }
 
-    pub fn create_session(&mut self, s: Session) -> String {
+    pub fn create_session(&self, s: Session) -> String {
         let new_session_id = format!("{}", Uuid::new_v4());
-        self.acc
+        self.session_cache
             .lock()
             .unwrap()
-            .session_cache
             .insert(new_session_id.clone(), s);
         new_session_id
     }
