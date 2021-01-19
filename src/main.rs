@@ -5,6 +5,7 @@ mod github;
 mod env;
 
 use actix_web::{App, HttpServer, middleware::Logger};
+use actix_cors::{Cors};
 use oauth::OauthAccessor;
 use session_store::SessionStore;
 
@@ -16,14 +17,21 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+              .allow_any_origin()
+              .allow_any_method()
+              .allow_any_header()
+              .supports_credentials()
+              .max_age(3600);
+
         App::new()
             .data(accessor.clone())
             .data(auth.clone())
             .service(app::hello)
             .service(app::create_session)
             .service(app::has_session)
-            .service(app::debug)
             .wrap(Logger::default())
+            .wrap(cors)
     })
     .bind("127.0.0.1:8081")?
     .run()

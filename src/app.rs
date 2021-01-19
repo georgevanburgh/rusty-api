@@ -1,4 +1,4 @@
-use actix_web::cookie::Cookie;
+use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{error, get, post, web, HttpMessage, HttpRequest, HttpResponse, Result};
 
 use serde::Deserialize;
@@ -44,7 +44,7 @@ pub async fn create_session(
 
     let s = Session::new(token, refresh_token, user_email);
     let new_session_id = accessor.create_session(s);
-    let session_cookie = Cookie::build("session_id", new_session_id).finish();
+    let session_cookie = Cookie::build("session_id", new_session_id).same_site(SameSite::None).finish();
     Ok(HttpResponse::Ok()
         .cookie(session_cookie)
         .body("new session"))

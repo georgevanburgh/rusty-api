@@ -1,64 +1,73 @@
-function init() {
-  if (localStorage.getItem("session") != undefined) {
-    // we have session
-    console.log("logged in");
+import * as Util from './util';
+import * as PeachData from './peach-data';
 
-    return localStorage.getItem("session");
-  }
+const OAUTH_CLIENT_ID = "6289e8b7f6d38b068d87";
 
+function redirect_to_provider() {
+  // we dont have code and state, lets get them
+  let state = Util.makeid(10);
+
+  // save state to localstorage
+  console.log("going to perform auth, state", state);
+  window.localStorage.setItem("state", state);
+
+  // doing login
+  let params = new URLSearchParams();
+
+  params.set("client_id", OAUTH_CLIENT_ID);
+  params.set("redirect_uri", "https://localhost:8080/");
+  params.set("scope", "user:email");
+  params.set("state", state);
+
+  window.location.href = "https://github.com/login/oauth/authorize?" + params.toString();
+
+  return new Promise((res, rej) => {
+    // blank, unresolved promise
+  });
+}
+
+function get_session() {
   let params = new URLSearchParams(window.location.search);
 
   if (params.has('code') && params.has('state')) {
     // if we have a code and state, check if state matches. else error.
     if (localStorage.getItem("state") == undefined || localStorage.getItem("state") != params.get("state")) {
-      console.log("error");
-      return;
+      return Promise.reject("error");
     }
 
     let code = params.get('code');
-    // TODO - post code to backend to create session.
-    localStorage.setItem("session", code);
-    console.log("code", code);
 
-    window.location.href = "/";
-  } else {
-    // we dont have code and state, lets get them
-    let state = makeid(10);
+    return PeachData.create_session(code).then(s=>{
+      // clear the url.
+      window.location.href = "/";
 
-    // save state to localstorage
-    console.log("going to perform auth, state", state);
-    window.localStorage.setItem("state", state);
-
-    // doing login
-    let params = new URLSearchParams();
-
-    params.set("client_id", "6289e8b7f6d38b068d87");
-    params.set("redirect_uri", "http://localhost:8080/");
-    params.set("scope", "user:email");
-    params.set("state", state);
-
-    window.location.href = "https://github.com/login/oauth/authorize?" + params.toString();
+      return new Promise((res, rej) => {
+        // blank, unresolved promise
+      });
+    });
   }
+
+  return redirect_to_provider();
 }
 
-function makeid(length) {
-  var result = '';
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
+function init() {
+  return PeachData.has_session().then(session => {
+    if(session) {
+      return localStorage.getItem("session");
+    } else {
+      return get_session();
+    }
+  });
 }
 
 console.log("Hello!!!");
 
-let session = init();
+init().then(session => {
+  console.log("init", session);
 
-if (session) {
   document.addEventListener("DOMContentLoaded", () => {
     let codeEl = document.createElement("h1");
     codeEl.textContent = session;
     document.body.appendChild(codeEl);
   });
-}
+});

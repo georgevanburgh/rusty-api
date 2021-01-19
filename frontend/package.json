@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --mode production",
-    "start": "webpack serve --mode development --hot"
+    "start": "webpack serve --mode development --hot --https --key localhost.key --cert localhost.crt"
   },
   "author": "James Peach <james_peach01@hotmail.co.uk>",
   "license": "MIT",

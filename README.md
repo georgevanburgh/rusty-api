@@ -1,0 +1,1 @@
+Let's encrypt have a wonderful page for helping you create a certificate for localhost to use when developing things.
