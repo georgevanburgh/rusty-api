@@ -1,6 +1,5 @@
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{error, get, post, web, HttpMessage, HttpRequest, HttpResponse, Result};
-
 use serde::Deserialize;
 
 use crate::session_store::{Session, SessionStore};
