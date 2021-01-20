@@ -23,7 +23,7 @@ jobs:
     - uses: Swatinem/rust-cache@v1  
   
     - name: Build
-      run: cargo build --release --verbose
+      run: cargo build --verbose
     
     - name: Run tests
       run: cargo test --verbose
@@ -32,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: api-backend-build
-        path: target/release/peach-data
+        path: target/debug/peach-data
